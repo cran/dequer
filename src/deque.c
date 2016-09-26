@@ -1,4 +1,4 @@
-/*  Copyright (c) 2015, Schmidt
+/*  Copyright (c) 2015-2016, Schmidt
     All rights reserved.
     
     Redistribution and use in source and binary forms, with or without
@@ -211,6 +211,10 @@ int deque_combine(deque_t *dl, deque_t *dl2)
   
   dl->len += dl2->len;
   
+  dl2->start = NULL;
+  dl2->end = NULL;
+  dl2->len = 0;
+  
   return 0;
 }
 
@@ -233,4 +237,3 @@ void deque_free(deque_t *dl)
   
   free(dl);
 }
-

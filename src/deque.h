@@ -49,8 +49,19 @@ typedef struct list_t{
 } list_t;
 
 
+#define PRINTORDER_FORWARD 1
+#define PRINTORDER_REVERSE 2
+
+#define PEEKER_HEAD 1
+#define PEEKER_TAIL 2
+
+#define PRINT_FEW 1
+#define PRINT_ALL 2
+
 
 // External pointer shorthand
+#define CHECKPTR(ptr) if(ptr==NULL)error("queue/stack/deque is invalid: pointer is NULL")
+
 #define newRptr(ptr,Rptr,fin) PROTECT(Rptr = R_MakeExternalPtr(ptr, R_NilValue, R_NilValue));R_RegisterCFinalizerEx(Rptr, fin, TRUE)
 #define getRptr(ptr) R_ExternalPtrAddr(ptr);
 
@@ -72,4 +83,3 @@ void deque_print(deque_t *dl);
 
 
 #endif
-

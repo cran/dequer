@@ -1,4 +1,4 @@
-/*  Copyright (c) 2015, Schmidt
+/*  Copyright (c) 2015-2016, Schmidt
     All rights reserved.
     
     Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,17 @@
 
 #define MIN(x,y) (x<y?x:y)
 
-#define PRINT_FEW 1
-#define PRINT_ALL 2
+#define PRINT_TRUNCLEN 5
+#define STR_TRUNCLEN   25
 
-#define TRUNCLEN 5
 
-SEXP R_deque_print(SEXP deque_ptr, SEXP printlevel)
+
+SEXP R_deque_print(SEXP deque_ptr, SEXP printlevel, SEXP printorder_)
 {
   deque_t *dl = (deque_t *) getRptr(deque_ptr);
-  list_t *l = dl->start;
+  CHECKPTR(dl);
+  list_t *l;
+  const int printorder = INTEGER(printorder_)[0];
   
   int printlen, truncated;
   
@@ -49,8 +51,8 @@ SEXP R_deque_print(SEXP deque_ptr, SEXP printlevel)
   
   if (INTEGER(printlevel)[0] == PRINT_FEW)
   {
-    printlen = MIN(dl->len,TRUNCLEN);
-    truncated = dl->len<TRUNCLEN?0:1;
+    printlen = MIN(dl->len,PRINT_TRUNCLEN);
+    truncated = dl->len<PRINT_TRUNCLEN?0:1;
   }
   else
   {
@@ -59,12 +61,17 @@ SEXP R_deque_print(SEXP deque_ptr, SEXP printlevel)
   }
   
   
+  if (printorder == PRINTORDER_FORWARD)
+    l = dl->start;
+  else
+    l = dl->end;
+  
   for (int i=0; i<printlen; i++)
   {
     Rprintf("[[%d]]\n", i+1);
     PrintValue(l->data);
     Rprintf("\n");
-    l = l->next;
+    l = (printorder == 1 ? l->next : l->prev);
   }
   
   if (truncated)
@@ -78,6 +85,7 @@ SEXP R_deque_print(SEXP deque_ptr, SEXP printlevel)
 SEXP R_deque_length(SEXP deque_ptr)
 {
   deque_t *dl = (deque_t *) getRptr(deque_ptr);
+  CHECKPTR(dl);
   
   SEXP len;
   PROTECT(len = allocVector(INTSXP, 1));
@@ -93,6 +101,7 @@ SEXP R_deque_length(SEXP deque_ptr)
 SEXP R_deque_reverse(SEXP deque_ptr)
 {
   deque_t *dl = (deque_t *) getRptr(deque_ptr);
+  CHECKPTR(dl);
   
   deque_reverse(dl);
   
@@ -101,28 +110,40 @@ SEXP R_deque_reverse(SEXP deque_ptr)
 
 
 
-SEXP R_deque_str(SEXP deque_ptr)
+SEXP R_deque_str(SEXP deque_ptr, SEXP obj_type, SEXP printorder_)
 {
   deque_t *dl = (deque_t *) getRptr(deque_ptr);
-  list_t *l = dl->start;
+  CHECKPTR(dl);
+  list_t *l;
+  const int len = dl->len;
+  const int printlen = MIN(len, STR_TRUNCLEN);
+  const int printorder = INTEGER(printorder_)[0];
   
-  if (dl->len == 0)
+  if (len == 0)
   {
-    Rprintf(" deque()\n");
+    Rprintf(" %s()\n", CHARPT(obj_type, 0));
     return R_NilValue;
   }
   
   SEXP basePackage;
   PROTECT( basePackage = eval( lang2( install("getNamespace"), ScalarString(mkChar("utils")) ), R_GlobalEnv ) );
   
-  Rprintf("Deque of %d\n", dl->len);
+  Rprintf("%s of %d\n", CHARPT(obj_type, 0), len);
   
-  for (int i=0; i<dl->len; i++)
+  if (printorder == PRINTORDER_FORWARD)
+    l = dl->start;
+  else
+    l = dl->end;
+  
+  for (int i=0; i<printlen; i++)
   {
     Rprintf(" $ :");
     eval( lang2( install("str"), l->data), basePackage);
-    l = l->next;
+    l = (printorder == PRINTORDER_FORWARD ? l->next : l->prev);
   }
+  
+  if (len > printlen)
+    Rprintf("  [output truncated to %d of %d elements]\n", printlen, len);
   
   UNPROTECT(1);
   return R_NilValue;
@@ -130,26 +151,32 @@ SEXP R_deque_str(SEXP deque_ptr)
 
 
 
-#define HEAD 1
-#define TAIL 2
-
 SEXP R_deque_headsortails(SEXP deque_ptr, SEXP n, SEXP headsortails)
 {
   deque_t *dl = (deque_t *) getRptr(deque_ptr);
+  CHECKPTR(dl);
   list_t *l;
   
-  if (dl->len == 0)
+  const int len = dl->len;
+  const int printlen = MIN(len, INTEGER(n)[0]);
+  const int hot = INTEGER(headsortails)[0];
+  
+  if (len == 0)
   {
     Rprintf("deque()\n");
     return R_NilValue;
   }
   
   
-  int printlen = MIN(dl->len,INTEGER(n)[0]);
-  const int hot = INTEGER(headsortails)[0];
-  
-  l = hot == HEAD ? dl->start : dl->end;
-  
+  if (hot == PEEKER_HEAD)
+    l = dl->start;
+  else// if (hot == PEEKER_TAIL)
+  {
+    l = dl->end;
+    
+    for (int i=1; i<printlen; i++)
+      l = l->prev;
+  }
   
   for (int i=0; i<printlen; i++)
   {
@@ -157,9 +184,8 @@ SEXP R_deque_headsortails(SEXP deque_ptr, SEXP n, SEXP headsortails)
     PrintValue(l->data);
     Rprintf("\n");
     
-    l = hot == HEAD ? l->next : l->prev;
+    l = l->next;
   }
   
   return R_NilValue;
 }
-

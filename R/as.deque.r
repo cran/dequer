@@ -1,34 +1,3 @@
-#' @export
-as.list.deque <- function(x, ...)
-{
-  .Call("R_deque_to_Rlist", x)
-}
-
-
-
-#' @export
-head.deque <- function(x, n=6, ...)
-{
-  n <- as.integer(n)
-  
-  .Call("R_deque_headsortails", x, n, 1L)
-  invisible()
-}
-
-
-
-#' @export
-tail.deque <- function(x, n=6, ...)
-{
-  n <- as.integer(n)
-  
-  .Call("R_deque_headsortails", x, n, 2L)
-  invisible()
-}
-
-
-
-
 #' Convert to Deque
 #' 
 #' @param x
@@ -37,17 +6,21 @@ tail.deque <- function(x, n=6, ...)
 #' to be set as elements of a deque.
 #'
 #' @return
-#' A deque object.
+#' A queue, stack, or deque.
 #' 
 #' @examples
+#' \dontrun{
 #' library(dequer)
 #' d <- as.deque(lapply(1:5, identity))
 #' d
+#' }
 #' 
 #' @export
 #' @name as.deque
 #' @rdname as.deque
 as.deque <- function(x) UseMethod("as.deque")
+
+
 
 #' @export
 #' @rdname as.deque
@@ -56,18 +29,42 @@ as.deque.list <- function(x)
   d <- deque()
   
   for (obj in x)
-    pushback(d, obj)
+    push(d, obj)
+  
+  rev(d)
   
   return(d)
 }
+
+
 
 #' @export
 #' @rdname as.deque
 as.deque.default <- function(x)
 {
   d <- deque()
-  pushback(d, x)
+  push(d, x)
   
   return(d)
 }
 
+
+
+#' @export
+#' @rdname as.deque
+as.deque.queue <- function(x)
+{
+  rev(x)
+  class(x) <- "deque"
+  return(x)
+}
+
+
+
+#' @export
+#' @rdname as.deque
+as.deque.stack <- function(x)
+{
+  class(x) <- "deque"
+  return(x)
+}
