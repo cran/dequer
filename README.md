@@ -1,6 +1,6 @@
 # dequer 
 
-* **Version:** 2.0-0
+* **Version:** 2.0-1
 * **Status:** [![Build Status](https://travis-ci.org/wrathematics/dequer.png)](https://travis-ci.org/wrathematics/dequer) 
 * **License:** [![License](http://img.shields.io/badge/license-BSD%202--Clause-orange.svg?style=flat)](http://opensource.org/licenses/BSD-2-Clause)
 * **Author:** Drew Schmidt
@@ -101,16 +101,20 @@ We can start emptying the queue by "popping" whatever's in first:
 
 ```r
 pop(q)
+## [1] 1
 str(q)
 ## queue of 2
 ##  $ : int 2
 ##  $ : int 3
 
 pop(q)
+## [1] 2
 str(q)
 ## queue of 1
 ##  $ : int 3
+
 pop(q)
+## [1] 3
 str(q)
 ## queue()
 ```
@@ -127,6 +131,7 @@ str(s)
 ##  $ : int 1
 
 pop(s)
+## [1] 3
 str(s)
 ## stack of 2
 ##  $ : int 2

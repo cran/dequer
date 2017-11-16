@@ -1,4 +1,4 @@
-/*  Copyright (c) 2015-2016, Schmidt
+/*  Copyright (c) 2015-2017 Drew Schmidt
     All rights reserved.
     
     Redistribution and use in source and binary forms, with or without
@@ -84,11 +84,12 @@ void deque_pushback(deque_t *dl, SEXP data)
 
 
 
-void deque_pop(deque_t *dl)
+SEXP deque_pop(deque_t *dl)
 {
   list_t *tmp;
   
-  if (dl->len == 0) return;
+  if (dl->len == 0)
+    return R_NilValue;
   
   list_t *l = dl->start;
   if (l->next)
@@ -101,20 +102,24 @@ void deque_pop(deque_t *dl)
   }
   
   dl->start = l->next;
-  if (dl->len == 1) dl->end = NULL;
+  if (dl->len == 1)
+    dl->end = NULL;
   dl->len--;
   
-  R_ReleaseObject(l->data);
+  SEXP ret = l->data;
+  R_ReleaseObject(ret);
   free(l);
+  return ret;
 }
 
 
 
-void deque_popback(deque_t *dl)
+SEXP deque_popback(deque_t *dl)
 {
   list_t *tmp;
   
-  if (dl->len == 0) return;
+  if (dl->len == 0)
+    return R_NilValue;
   
   list_t *l = dl->end;
   
@@ -128,11 +133,14 @@ void deque_popback(deque_t *dl)
   }
   
   dl->end = l->prev;
-  if (dl->len == 1) dl->start = NULL;
+  if (dl->len == 1)
+    dl->start = NULL;
   dl->len--;
   
-  R_ReleaseObject(l->data);
+  SEXP ret = l->data;
+  R_ReleaseObject(ret);
   free(l);
+  return ret;
 }
 
 
@@ -147,7 +155,7 @@ void deque_reverse(deque_t *dl)
   dl->start = dl->end;
   dl->end = l;
   
-  for (int i=0; i<len; i++)
+  for (uint32_t i=0; i<len; i++)
   {
     tmp = l->next;
     l->next = l->prev;
@@ -163,7 +171,7 @@ void deque_reverse(deque_t *dl)
 int deque_split(const uint32_t k, deque_t *dl, deque_t **dl2)
 {
   if (dl->len < k) return -1;
-  int i;
+  uint32_t i;
   *dl2 = deque_create();
   list_t *l;
   
