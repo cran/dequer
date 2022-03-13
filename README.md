@@ -1,8 +1,9 @@
 # dequer 
 
-* **Version:** 2.0-1
-* **Status:** [![Build Status](https://travis-ci.org/wrathematics/dequer.png)](https://travis-ci.org/wrathematics/dequer) 
-* **License:** [![License](http://img.shields.io/badge/license-BSD%202--Clause-orange.svg?style=flat)](http://opensource.org/licenses/BSD-2-Clause)
+* **Version:** 2.0-2
+* **License:** [BSD 2-Clause](https://opensource.org/licenses/BSD-2-Clause)
+* **Project home**: https://github.com/wrathematics/dequer
+* **Bug reports**: https://github.com/wrathematics/dequer/issues
 * **Author:** Drew Schmidt
 
 
@@ -21,15 +22,12 @@ Note that unless truly necessary, we do not recommend using deques.  Stacks and 
 To install the R package, run:
 
 ```r
-install.package("dequer")
+install.packages("dequer")
 ```
 
 The development version is maintained on GitHub, and can easily be installed by any of the packages that offer installations from GitHub:
 
 ```r
-### Pick your preference
-devtools::install_github("wrathematics/dequer")
-ghit::install_github("wrathematics/dequer")
 remotes::install_github("wrathematics/dequer")
 ```
 
@@ -42,6 +40,8 @@ remotes::install_github("wrathematics/dequer")
 If you need to create a list and do not know how many elements the final object should have, it is better to use a queue or a stack (or if you're careful, a deque) to store the data before casting to a native R list object, with rough pseudocode:
 
 ```r
+library("dequer")
+
 ### Initialize
 q <- queue()
 
@@ -293,4 +293,4 @@ str(q)
 
 * It should go without saying that the functions with side-effects are very un-parallel safe.
 
-* If you create a deque by pushbacks, you need to call `rev()` on it when you're done with it.  Otherwise, when R goes to free the object (calling `rm();gc()` or exiting R), you will have to wait an inordinate time for R to traverse the deque and free the R objects (essentially in the wrong order).  The basic reason is that the preserve/release of R objects [is implemented as a stack](http://lists.r-forge.r-project.org/pipermail/rcpp-devel/2010-January/000180.html), and so if you do this in the wrong order, performance tanks. The bright side is, `rev()` is very cheap, or you can just use stacks and queues without any penalty.
+* If you create a deque by pushbacks, you need to call `rev()` on it when you're done with it.  Otherwise, when R goes to free the object (calling `rm();gc()` or exiting R), you will have to wait an inordinate time for R to traverse the deque and free the R objects (essentially in the wrong order).  The basic reason is that the preserve/release of R objects [is implemented as a stack](https://lists.r-forge.r-project.org/pipermail/rcpp-devel/2010-January/000180.html), and so if you do this in the wrong order, performance tanks. The bright side is, `rev()` is very cheap, or you can just use stacks and queues without any penalty.
